@@ -1,4 +1,4 @@
-Program simuates a game of blackjack.
+A fully strategic game of blackjack that is played entirely in the bash/command line.
 ===
 
 
@@ -6,12 +6,14 @@ Things to work on:
 ---
 - Create logic for alternative hand values when Ace cards are present in hand
 - Re-factor classes (Player, User, Dealer, Game, etc.)
-
+- Documentation
+- Reduce code smell
 
 Features to add:
 --- 
 - Users, money, bets, insurance, double down
-- save wins/losses as pickled file, alt. values of Aces (1 or 11)
+- save wins/losses as pickled/JSON file
+- alternate values of Aces (1 or 11)
 
 Ace hand logic:
 ---
@@ -25,7 +27,8 @@ Ace hand logic:
 >> High Ace Hand= 24-10= 14
 - Compare high ace hand to low ace hand and set current to value of current hand
 
-Other example
+- Other example
+
 >> sample hand = Ace(1), 6 (11+6= 17 or 1+6= 7)
 - Let's say user hits... delt card = 7
 >> sample hand = 11+6+7 = 24
@@ -33,7 +36,7 @@ Other example
 >> 1 ace found, so new hand is 14 (24-10= 14). Then ask to hit or stand again.
 - If no aces, and user hasnt busted, ask hit or stand, otherwise, end game.
 
-2nd example
+- 2nd example
 >> sample hand = Ace(11), 5
 - user decides to hit 
 - new card = 7, new hand = 11, 5, 7
