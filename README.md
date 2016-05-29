@@ -1,4 +1,4 @@
-A fully strategic game of blackjack that is played entirely in the bash/command line.
+A fully strategic game of blackjack that is played entirely in the command line terminal.
 ===
 
 
