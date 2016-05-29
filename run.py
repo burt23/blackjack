@@ -1,9 +1,6 @@
 #!usr/bin/env python3
+from models import Game, User, Dealer
 
-from game import Game
-import time
-
-# initialize game
 game = Game()
 
 def main():
