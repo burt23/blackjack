@@ -10,7 +10,7 @@ Current Features:
 
 How to Play:
 ---
-- Run the run.py file and follow the onscreen prompts. Such as `python3 run.py`
+- Run the run.py file and follow the onscreen prompts. Input the following command `python3 run.py`
 
 To Do/Features to Add:
 ---
