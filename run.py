@@ -2,10 +2,9 @@
 from models import Game, Player, Dealer
 
 game = Game()
-player = Player()
-game.add_player(player)
 
 def main():
+    game.num_of_players()
     game.start_game()
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-import time
+import time, sys
 
 class Deck():
     def __init__(self):
@@ -65,8 +65,8 @@ class Deck():
 
 
 class Player():
-    def __init__(self):
-        self.name = 'Player'
+    def __init__(self, name='Player'):
+        self.name = name
         self.hand_value = 0
         self.hand_stack = {}
         self.still_playing = True
@@ -77,28 +77,22 @@ class Player():
         if value != 1:
             self.hand_value += value
         else:
-            '''
-            temp_value = self.hand_value
-            temp_ace_count = 0
-            ace_count = self.num_of_aces_in_hand()
-            while temp_value <= 21 and temp_ace_count < ace_count:
-                temp_value += 11
-                temp_ace_count += 1
-            self.hand_value = temp_value
-            '''
             if self.hand_value + 11 < 21:
                 self.hand_value += 11
             else:
                 self.hand_value += 1
 
     def show_cards_in_hand(self):
+        print("-"*20)
+        print("{}'s hand".format(self.name))
+        print("-"*20)
         for card in self.hand_stack.keys():
             print(card)
         self.show_hand_value()
     
     def show_hand_value(self):
         print("{}'s card value is {}".format(
-            self.__class__.__name__,
+            self.name,
             self.hand_value))
     
     def num_of_aces_in_hand(self):
@@ -112,7 +106,7 @@ class Player():
             return False
         else:
             self.busted = True
-            print("You bust!")
+            print("{} bust!".format(self.name))
             time.sleep(2)
             return True
 
@@ -125,7 +119,7 @@ class Player():
 
 class Dealer(Player):
     def __init__(self):
-        Player.__init__(self)        
+        Player.__init__(self, "Dealer")        
 
 
 class Game():
@@ -136,8 +130,10 @@ class Game():
 
     def show_game_options(self):
         for player in self.players:
+            print("-"*20)
+            print("It's {}'s turn".format(player.name.upper()))
+            print("-"*20)
             choice = str(input("Select an option:\n\
-------------------------\n\
 - View my hand [V]\n\
 - View dealer's hand [D]\n\
 - Hit [H]\n\
@@ -149,20 +145,15 @@ class Game():
             if choice == 'H':
                 self.deck.draw_card(player)
                 player.show_cards_in_hand()
-                if player.check_for_bust():
-                    self.force_hit_until_18() 
-                    self.compare_hands()
-                else:
+                if not player.check_for_bust():
                     self.show_game_options() 
             elif choice == 'S':
                 player.stand()
                 if len(self.players) == 1:
-                    print("You stood. Let's see the dealer's hand")
+                    print("{} stood. Let's see the dealer's hand".format(player.name))
                 else:
-                    print("You stood. Let's see the next player play.")
+                    print("{} stood. Let's see the next player play.".format(player.name))
                 time.sleep(2)
-                self.force_hit_until_18()
-                self.compare_hands()
             elif choice == 'V':
                 player.show_cards_in_hand()
                 self.show_game_options()
@@ -173,10 +164,12 @@ class Game():
                 self.reset_game()
                 self.start_game()
             elif choice == 'Q':
-                pass
+                sys.exit("Goodbye")
             else:
                 print("Error: Choose a valid menu option.")
                 self.show_game_options()
+        self.force_hit_until_18() 
+        self.compare_hands()
 
     def compare_hands(self):
         """All player's and dealer's scores are compared and
@@ -187,13 +180,13 @@ class Game():
             else: 
                 if not self.dealer.busted:
                     if player.hand_value > self.dealer.hand_value:
-                        print("{} win!".format(player.name))
+                        print("{} wins!".format(player.name))
                     elif player.hand_value == self.dealer.hand_value:
-                        print("Push! You and the dealer have the same hand.")
+                        print("Push! {} and the dealer have the same hand.".format(player.name))
                     else: 
-                        print("{} lose".format(player.name))
+                        print("{} lost".format(player.name))
                 else:
-                    print("{} win".format(player.name))
+                    print("{} wins!".format(player.name))
         self.play_again()
 
     def force_hit_until_18(self):
@@ -234,6 +227,14 @@ class Game():
             else:
                 for player in to_whom:
                     self.deck.draw_card(player)
+
+    def num_of_players(self):
+        num = int(input("How many players are going to play in this round of Blackjack? "))
+        for count in range(num):
+            name = str(input(
+                "What is player {}'s username? ".format(count+1)).title())
+            player = Player(name)
+            self.add_player(player)
 
     def add_player(self, player):
         self.players.append(player)
