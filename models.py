@@ -61,17 +61,35 @@ class Deck():
                 }
 
     def draw_card(self, player):
-        card, value = self.deck.popitem()
-        player.hand_stack[card] = value
-        player.hand_value = sum(card for card in player.hand_stack.values())
+        player.add_card_to_hand(*self.deck.popitem())
 
 
 class Player():
     def __init__(self):
+        self.name = 'Player'
         self.hand_value = 0
         self.hand_stack = {}
         self.still_playing = True
         self.busted = False
+
+    def add_card_to_hand(self, card, value):
+        self.hand_stack[card] = value
+        if value != 1:
+            self.hand_value += value
+        else:
+            '''
+            temp_value = self.hand_value
+            temp_ace_count = 0
+            ace_count = self.num_of_aces_in_hand()
+            while temp_value <= 21 and temp_ace_count < ace_count:
+                temp_value += 11
+                temp_ace_count += 1
+            self.hand_value = temp_value
+            '''
+            if self.hand_value + 11 < 21:
+                self.hand_value += 11
+            else:
+                self.hand_value += 1
 
     def show_cards_in_hand(self):
         for card in self.hand_stack.keys():
@@ -79,47 +97,28 @@ class Player():
         self.show_hand_value()
     
     def show_hand_value(self):
-        ace_val = self.get_ace_value()
-        if ace_val > self.hand_value and not ace_val > 21:
-            print("{}'s card value is {}".format(
-                self.__class__.__name__,
-                ace_val))
-        else:
-            print("{}'s card value is {}".format(
-                self.__class__.__name__,
-                self.hand_value))
-
+        print("{}'s card value is {}".format(
+            self.__class__.__name__,
+            self.hand_value))
+    
     def num_of_aces_in_hand(self):
         return sum(card for card in self.hand_stack.values() if card == 1)
 
-    def get_ace_value(self):
-        temp_value = self.hand_value
-        ace_count = 0
-        while temp_value <= 21 and ace_count < self.num_of_aces_in_hand():
-            temp_value += 10
-            ace_count += 1
-        return temp_value
-
     def stand(self):
         self.still_playing = False
-        print("\nYou stood. Let's see what the dealer's hand looks like.\n")
 
     def check_for_bust(self):
-        ace_value = self.get_ace_value()
-        if ace_value < 21:
+        if self.hand_value <= 21:
             return False
         else:
-            if self.hand_value < 21:
-                return False
-            else:
-                self.busted = True
-                print("You bust!")
-                time.sleep(2)
-                return True
+            self.busted = True
+            print("You bust!")
+            time.sleep(2)
+            return True
 
     def reset_stats(self):
         self.hand_value = 0
-        self.hand_stack = []
+        self.hand_stack = {}
         self.still_playing = True
         self.busted = False
 
@@ -127,6 +126,7 @@ class Player():
 class Dealer(Player):
     def __init__(self):
         Player.__init__(self)        
+
 
 class Game():
     def __init__(self):
@@ -151,14 +151,18 @@ class Game():
                 player.show_cards_in_hand()
                 if player.check_for_bust():
                     self.force_hit_until_18() 
-                    self.compare_hands(player)
+                    self.compare_hands()
                 else:
                     self.show_game_options() 
             elif choice == 'S':
                 player.stand()
+                if len(self.players) == 1:
+                    print("You stood. Let's see the dealer's hand")
+                else:
+                    print("You stood. Let's see the next player play.")
                 time.sleep(2)
                 self.force_hit_until_18()
-                self.compare_hands(player)
+                self.compare_hands()
             elif choice == 'V':
                 player.show_cards_in_hand()
                 self.show_game_options()
@@ -174,40 +178,33 @@ class Game():
                 print("Error: Choose a valid menu option.")
                 self.show_game_options()
 
-    def compare_hands(self, player):
-        """ player and dealer's scores are compared and
-        winner is printed. Game ends afterwards """
-        if player.busted:
-            print("You busted")
-        else: 
-            if not self.dealer.busted:
-                if player.hand_value > self.dealer.hand_value:
-                    print("You win!")
-                elif player.hand_value == self.dealer.hand_value:
-                    print("Push! You and the dealer have the same hand.")
-                else: 
-                    print("You lose")
-            else:
-                print("You win")
+    def compare_hands(self):
+        """All player's and dealer's scores are compared and
+        winners are printed. Game ends afterwards """
+        for player in self.players:
+            if player.busted:
+                print("{} busted".format(player.name))
+            else: 
+                if not self.dealer.busted:
+                    if player.hand_value > self.dealer.hand_value:
+                        print("{} win!".format(player.name))
+                    elif player.hand_value == self.dealer.hand_value:
+                        print("Push! You and the dealer have the same hand.")
+                    else: 
+                        print("{} lose".format(player.name))
+                else:
+                    print("{} win".format(player.name))
         self.play_again()
 
     def force_hit_until_18(self):
-        ace_value = self.dealer.get_ace_value()
-        if ace_value < 21:
-            while ace_value <= 17 and not ace_value >= 21:
-                print("\nDealer is dealing himself a card. . .\n")
-                time.sleep(2)
-                self.deck.draw_card(self.dealer)
-                ace_value = self.dealer.get_ace_value()
-                self.dealer.show_cards_in_hand()
-        else:
-            while self.dealer.hand_value <= 17 and not self.dealer.hand_value >= 21:
-                print("\nDealer is dealing himself a card. . .\n")
-                time.sleep(2)
-                self.deck.draw_card(self)
-                self.dealer.show_cards_in_hand()
+        while self.dealer.hand_value <= 17 and not self.dealer.hand_value >= 21:
+            print("\nDealer is dealing himself a card. . .\n")
+            time.sleep(2)
+            self.deck.draw_card(self.dealer)
+            self.dealer.show_cards_in_hand()
         if self.dealer.hand_value > 21:
             self.dealer.busted = True
+            print("Dealer busts")
 
     def play_again(self):
         """ asks player for input to play again, if yes, user/dealer
