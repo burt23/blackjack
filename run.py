@@ -4,8 +4,7 @@ from models import Game, Player, Dealer
 game = Game()
 
 def main():
-    game.num_of_players()
-    game.start_game()
+    game.prepare_game()
 
 if __name__ == '__main__':
     main()

@@ -1,4 +1,4 @@
-import time, sys
+import sys
 
 class Deck():
     def __init__(self):
@@ -107,7 +107,6 @@ class Player():
         else:
             self.busted = True
             print("{} busts!".format(self.name))
-            time.sleep(2)
             return True
 
     def reset_stats(self):
@@ -152,7 +151,6 @@ class Game():
                 print("{} stood. Let's see the dealer's hand".format(player.name))
             else:
                 print("{} stood. Let's see the next player play.".format(player.name))
-            time.sleep(2)
         elif choice == 'V':
             player.show_cards_in_hand()
             self.show_game_options(player)
@@ -161,7 +159,7 @@ class Game():
             self.show_game_options(player)
         elif choice == 'R':
             self.reset_game()
-            self.start_game()
+            self.play_game()
         elif choice == 'Q':
             sys.exit("Goodbye")
         else:
@@ -188,7 +186,6 @@ class Game():
     def force_hit_until_18(self):
         while self.dealer.hand_value <= 17 and not self.dealer.hand_value >= 21:
             print("\nDealer is dealing himself a card. . .\n")
-            time.sleep(2)
             self.deck.draw_card(self.dealer)
             self.dealer.show_cards_in_hand()
         if self.dealer.hand_value > 21:
@@ -201,19 +198,24 @@ class Game():
         choice = str(input("Do you want to play again? [Y/N]")).strip().upper()
         if choice == "Y":
             self.reset_game()
-            self.start_game()
+            self.play_game()
         elif choice == "N":
             sys.exit("Ok. See you next time")
         else:
             print("Error: Choose 'Y' or 'N'. ")
             self.play_again()
 
-    def start_game(self):
+    def prepare_game(self):
+        self.num_of_players()
         self.deal_card(self.dealer)
         self.dealer.show_cards_in_hand()
         self.deal_card(self.players, 2)
         for player in self.players:
             player.show_cards_in_hand()
+        self.play_game()
+
+    def play_game(self):
+        for player in self.players:
             self.show_game_options(player)
         self.force_hit_until_18() 
         self.compare_hands()
@@ -227,21 +229,22 @@ class Game():
                     self.deck.draw_card(player)
 
     def num_of_players(self):
-        num = int(input("How many players are going to play in this round of Blackjack? "))
+        try:
+            num = int(input("How many players are going to play in this round of Blackjack? "))
+        except:
+            self.num_of_players()
         for count in range(num):
             name = str(input(
                 "What is player {}'s username? ".format(count+1)).title())
             player = Player(name)
-            self.add_player(player)
-
-    def add_player(self, player):
-        self.players.append(player)
+            self.players.append(player)
 
     def reset_game(self):
         for player in self.players:
             player.reset_stats()
         self.dealer.reset_stats()
         self.deck = Deck()
+
 
     def get_data(self, player):
         try:

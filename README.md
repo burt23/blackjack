@@ -13,3 +13,4 @@ Features to add:
 --- 
 - Users, money, bets, insurance, double down
 - save wins/losses as pickled/JSON file
+- Implement multi-deck game 
