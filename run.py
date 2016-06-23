@@ -5,6 +5,7 @@ game = Game()
 
 def main():
     game.prepare_game()
+    game.play_game()
 
 if __name__ == '__main__':
     main()

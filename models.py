@@ -3,7 +3,7 @@ import sys
 class Deck():
     def __init__(self):
         self.deck = {
-                'Ace of Spades': 1,
+                'Ace of Spades': 11,
                 '2 of Spades': 2,
                 '3 of Spades': 3,
                 '4 of Spades': 4,
@@ -17,7 +17,7 @@ class Deck():
                 'Queen of Spades': 10,
                 'King of Spades': 10,
 
-                'Ace of Hearts': 1,
+                'Ace of Hearts': 11,
                 '2 of Hearts': 2,
                 '3 of Hearts': 3,
                 '4 of Hearts': 4,
@@ -31,7 +31,7 @@ class Deck():
                 'Queen of Hearts': 10,
                 'King of Hearts': 10,
 
-                'Ace of Clubs': 1,
+                'Ace of Clubs': 11,
                 '2 of Clubs': 2,
                 '3 of Clubs': 3,
                 '4 of Clubs': 4,
@@ -45,7 +45,7 @@ class Deck():
                 'Queen of Clubs': 10,
                 'King of Clubs': 10,
 
-                'Ace of Diamonds': 1,
+                'Ace of Diamonds': 11,
                 '2 of Diamonds': 2,
                 '3 of Diamonds': 3,
                 '4 of Diamonds': 4,
@@ -74,13 +74,26 @@ class Player():
 
     def add_card_to_hand(self, card, value):
         self.hand_stack[card] = value
-        if value != 1:
-            self.hand_value += value
-        else:
-            if self.hand_value + 11 < 21:
-                self.hand_value += 11
+        self.evaluate_hand(card, value)
+
+    def evaluate_hand(self, card, value):
+        # Ace, 5, 10
+        temp_value = self.sum_non_aces() #0, 
+        count = 0
+        ace_count = self.num_aces() #1
+        while count < ace_count:
+            if temp_value + 11 <= 21:
+                temp_value += 11
             else:
-                self.hand_value += 1
+                temp_value += 1
+            count += 1
+        self.hand_value = temp_value
+
+    def sum_non_aces(self):
+        return sum(card for card in self.hand_stack.values() if card != 11)
+
+    def num_aces(self):
+        return len(list(card for card in self.hand_stack.values() if card == 11))
 
     def show_cards_in_hand(self):
         print("-"*20)
@@ -120,6 +133,13 @@ class Dealer(Player):
     def __init__(self):
         Player.__init__(self, "Dealer")        
 
+    def soft_17(self):
+        ''' Returns True if the dealers hand value is 17. False otherwise'''
+        if self.hand_value == 17:
+            return True
+        else:
+            return False
+
 
 class Game():
     def __init__(self):
@@ -140,6 +160,9 @@ class Game():
 - Quit [Q]\n\
 ------------------------\n\
 ")).strip().upper()
+        self.do_menu_choice(choice, player)
+
+    def do_menu_choice(self, choice, player):
         if choice == 'H':
             self.deck.draw_card(player)
             player.show_cards_in_hand()
@@ -164,6 +187,7 @@ class Game():
             sys.exit("Goodbye")
         else:
             print("Error: Choose a valid menu option.")
+            self.show_game_options(player)
 
     def compare_hands(self):
         """All player's and dealer's scores are compared and
@@ -207,14 +231,13 @@ class Game():
 
     def prepare_game(self):
         self.num_of_players()
+
+    def play_game(self):
         self.deal_card(self.dealer)
         self.dealer.show_cards_in_hand()
         self.deal_card(self.players, 2)
         for player in self.players:
             player.show_cards_in_hand()
-        self.play_game()
-
-    def play_game(self):
         for player in self.players:
             self.show_game_options(player)
         self.force_hit_until_18() 
@@ -229,10 +252,7 @@ class Game():
                     self.deck.draw_card(player)
 
     def num_of_players(self):
-        try:
-            num = int(input("How many players are going to play in this round of Blackjack? "))
-        except:
-            self.num_of_players()
+        num = int(input("How many players are going to play in this round of Blackjack? "))
         for count in range(num):
             name = str(input(
                 "What is player {}'s username? ".format(count+1)).title())
@@ -244,7 +264,6 @@ class Game():
             player.reset_stats()
         self.dealer.reset_stats()
         self.deck = Deck()
-
 
     def get_data(self, player):
         try:
