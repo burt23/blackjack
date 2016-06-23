@@ -4,8 +4,10 @@ A fully strategic game of blackjack that is played entirely in the command line.
 
 To Do:
 ---
+- Implement tests
 - Documentation
 - Reduce code smell
+- Package program into a CLI
 
 Features to add:
 --- 
