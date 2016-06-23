@@ -60,8 +60,16 @@ class Deck():
                 'King of Diamonds': 10,
                 }
 
-    def draw_card(self, player):
-        player.add_card_to_hand(*self.deck.popitem())
+    def draw_card(self, player, amount=1):
+        for number in range(amount):
+            player.add_card_to_hand(*self.deck.popitem())
+            '''
+            if isinstance(to_whom, Dealer):
+                self.deck.draw_card(to_whom)
+            else:
+                for player in to_whom:
+                    self.deck.draw_card(player)
+            '''
 
 
 class Player():
@@ -77,10 +85,9 @@ class Player():
         self.evaluate_hand(card, value)
 
     def evaluate_hand(self, card, value):
-        # Ace, 5, 10
-        temp_value = self.sum_non_aces() #0, 
+        temp_value = self.sum_non_aces() 
         count = 0
-        ace_count = self.num_aces() #1
+        ace_count = self.num_aces() 
         while count < ace_count:
             if temp_value + 11 <= 21:
                 temp_value += 11
@@ -233,23 +240,15 @@ class Game():
         self.num_of_players()
 
     def play_game(self):
-        self.deal_card(self.dealer)
+        self.deck.draw_card(self.dealer)
         self.dealer.show_cards_in_hand()
-        self.deal_card(self.players, 2)
         for player in self.players:
+            self.deck.draw_card(player, 2)
             player.show_cards_in_hand()
         for player in self.players:
             self.show_game_options(player)
         self.force_hit_until_18() 
         self.compare_hands()
-        
-    def deal_card(self, to_whom, amount=1):
-        for number in range(amount):
-            if isinstance(to_whom, Dealer):
-                self.deck.draw_card(to_whom)
-            else:
-                for player in to_whom:
-                    self.deck.draw_card(player)
 
     def num_of_players(self):
         num = int(input("How many players are going to play in this round of Blackjack? "))
