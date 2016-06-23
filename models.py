@@ -106,7 +106,7 @@ class Player():
             return False
         else:
             self.busted = True
-            print("{} bust!".format(self.name))
+            print("{} busts!".format(self.name))
             time.sleep(2)
             return True
 
@@ -128,12 +128,11 @@ class Game():
         self.players = []
         self.deck = Deck()
 
-    def show_game_options(self):
-        for player in self.players:
-            print("-"*20)
-            print("It's {}'s turn".format(player.name.upper()))
-            print("-"*20)
-            choice = str(input("Select an option:\n\
+    def show_game_options(self, player):
+        print("-"*20)
+        print("It's {}'s turn".format(player.name.upper()))
+        print("-"*20)
+        choice = str(input("Select an option:\n\
 - View my hand [V]\n\
 - View dealer's hand [D]\n\
 - Hit [H]\n\
@@ -142,34 +141,31 @@ class Game():
 - Quit [Q]\n\
 ------------------------\n\
 ")).strip().upper()
-            if choice == 'H':
-                self.deck.draw_card(player)
-                player.show_cards_in_hand()
-                if not player.check_for_bust():
-                    self.show_game_options() 
-            elif choice == 'S':
-                player.stand()
-                if len(self.players) == 1:
-                    print("{} stood. Let's see the dealer's hand".format(player.name))
-                else:
-                    print("{} stood. Let's see the next player play.".format(player.name))
-                time.sleep(2)
-            elif choice == 'V':
-                player.show_cards_in_hand()
-                self.show_game_options()
-            elif choice == 'D':
-                self.dealer.show_cards_in_hand()
-                self.show_game_options()
-            elif choice == 'R':
-                self.reset_game()
-                self.start_game()
-            elif choice == 'Q':
-                sys.exit("Goodbye")
+        if choice == 'H':
+            self.deck.draw_card(player)
+            player.show_cards_in_hand()
+            if not player.check_for_bust():
+                self.show_game_options(player) 
+        elif choice == 'S':
+            player.stand()
+            if len(self.players) == 1:
+                print("{} stood. Let's see the dealer's hand".format(player.name))
             else:
-                print("Error: Choose a valid menu option.")
-                self.show_game_options()
-        self.force_hit_until_18() 
-        self.compare_hands()
+                print("{} stood. Let's see the next player play.".format(player.name))
+            time.sleep(2)
+        elif choice == 'V':
+            player.show_cards_in_hand()
+            self.show_game_options(player)
+        elif choice == 'D':
+            self.dealer.show_cards_in_hand()
+            self.show_game_options(player)
+        elif choice == 'R':
+            self.reset_game()
+            self.start_game()
+        elif choice == 'Q':
+            sys.exit("Goodbye")
+        else:
+            print("Error: Choose a valid menu option.")
 
     def compare_hands(self):
         """All player's and dealer's scores are compared and
@@ -207,7 +203,7 @@ class Game():
             self.reset_game()
             self.start_game()
         elif choice == "N":
-            print("Ok. See you next time")
+            sys.exit("Ok. See you next time")
         else:
             print("Error: Choose 'Y' or 'N'. ")
             self.play_again()
@@ -218,7 +214,9 @@ class Game():
         self.deal_card(self.players, 2)
         for player in self.players:
             player.show_cards_in_hand()
-        self.show_game_options()
+            self.show_game_options(player)
+        self.force_hit_until_18() 
+        self.compare_hands()
         
     def deal_card(self, to_whom, amount=1):
         for number in range(amount):
