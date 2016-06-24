@@ -65,8 +65,8 @@ class Deck():
     def draw_card(self, player, amount=1):
         """Draw 'x' AMOUNT of cards from self.deck to PLAYER"""
         for number in range(amount):
-            player.add_card_to_hand(*self.deck.pop(self.random_item()))
             self.deck_length -= 1
+            player.add_card_to_hand(*self.deck.pop(self.random_item()))
 
     def random_item(self):
         """Return a random list index based on the length of self.deck"""
