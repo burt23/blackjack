@@ -1,4 +1,4 @@
-import sys
+import sys, json, random
 
 class Deck():
     def __init__(self):
@@ -63,13 +63,6 @@ class Deck():
     def draw_card(self, player, amount=1):
         for number in range(amount):
             player.add_card_to_hand(*self.deck.popitem())
-            '''
-            if isinstance(to_whom, Dealer):
-                self.deck.draw_card(to_whom)
-            else:
-                for player in to_whom:
-                    self.deck.draw_card(player)
-            '''
 
 
 class Player():
@@ -81,19 +74,20 @@ class Player():
         self.busted = False
 
     def add_card_to_hand(self, card, value):
-        self.hand_stack[card] = value
-        self.evaluate_hand(card, value)
-
-    def evaluate_hand(self, card, value):
+        if value != 11:
+            self.hand_stack[card] = value
         temp_value = self.sum_non_aces() 
         count = 0
         ace_count = self.num_aces() 
-        while count < ace_count:
-            if temp_value + 11 <= 21:
-                temp_value += 11
-            else:
-                temp_value += 1
-            count += 1
+        if ace_count > 0:
+            while count < ace_count:
+                if temp_value + 11 <= 21:
+                    temp_value += 11
+                    self.hand_stack[card] = value
+                else:
+                    temp_value += 1
+                    self.hand_stack[card] = 1
+                count += 1
         self.hand_value = temp_value
 
     def sum_non_aces(self):
@@ -114,9 +108,6 @@ class Player():
         print("{}'s card value is {}".format(
             self.name,
             self.hand_value))
-    
-    def num_of_aces_in_hand(self):
-        return sum(card for card in self.hand_stack.values() if card == 1)
 
     def stand(self):
         self.still_playing = False
@@ -141,8 +132,8 @@ class Dealer(Player):
         Player.__init__(self, "Dealer")        
 
     def soft_17(self):
-        ''' Returns True if the dealers hand value is 17. False otherwise'''
-        if self.hand_value == 17:
+        '''Returns True if the dealers hand value is soft 17. False otherwise'''
+        if self.hand_value == 17 and self.num_aces() >= 1:
             return True
         else:
             return False
@@ -226,7 +217,7 @@ class Game():
     def play_again(self):
         """ asks player for input to play again, if yes, user/dealer
         stats are reseted. Otherwise, the program ends."""
-        choice = str(input("Do you want to play again? [Y/N]")).strip().upper()
+        choice = str(input("Do you want to play another round? [Y/N]")).strip().upper()
         if choice == "Y":
             self.reset_game()
             self.play_game()
@@ -240,15 +231,23 @@ class Game():
         self.num_of_players()
 
     def play_game(self):
-        self.deck.draw_card(self.dealer)
-        self.dealer.show_cards_in_hand()
+        self.deal_to_players()
+        self.deal_to_dealer()
+        for player in self.players:
+            self.show_game_options(player)
+        self.deal_to_dealer()
+        if not self.dealer.soft_17():
+            self.force_hit_until_18() 
+        self.compare_hands()
+
+    def deal_to_players(self):
         for player in self.players:
             self.deck.draw_card(player, 2)
             player.show_cards_in_hand()
-        for player in self.players:
-            self.show_game_options(player)
-        self.force_hit_until_18() 
-        self.compare_hands()
+
+    def deal_to_dealer(self):
+        self.deck.draw_card(self.dealer)
+        self.dealer.show_cards_in_hand()
 
     def num_of_players(self):
         num = int(input("How many players are going to play in this round of Blackjack? "))
@@ -264,16 +263,17 @@ class Game():
         self.dealer.reset_stats()
         self.deck = Deck()
 
-    def get_data(self, player):
+    def get_data(self, username):
         try:
-            with open('data.py', 'r') as f:
-                pass
+            with open('data.json', 'r') as f:
+                data = json.loads(f)
+                print(data)
         except Exception as err:
             print("Error: {}".format(err))
 
-    def write_data(self, player, money=None, wins=None, losses=None):
+    def write_data(self, username, money=None, wins=None, losses=None):
         try:
-            with open('data.py', 'w') as f:
+            with open('data.json', 'w') as f:
                 pass
         except Exception as err:
             print("Error: {}".format(err))

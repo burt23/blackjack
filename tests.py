@@ -63,6 +63,15 @@ class CardDealingTest(Test):
         self.assertTrue(self.player.hand_value == 14, 
             "Ace + 2 + Ace should equal 14 but instead got {}".format(self.player.hand_value))
 
+
+class Soft17Test(Test):
+    
+    def test_soft_17(self):
+        self.dealer.add_card_to_hand("Ace of Diamonds", 11)
+        self.dealer.add_card_to_hand("6 of Hearts", 6)
+        self.assertTrue(self.dealer.soft_17())
+
+
 class ResetGameTest(Test):
     
     def test_reset_game_deck_and_player_stats(self):
@@ -75,12 +84,22 @@ class ResetGameTest(Test):
     def test_resetted_stats_after_restart_game(self):
         card1, value1 = self.deck.deck.popitem()
         self.player.hand_stack[card1] = value1
-        self.player.reset_stats()
+        self.game.reset_game()
         card2, value2 = self.deck.deck.popitem()
         self.player.hand_stack[card2] = value2
         self.assertTrue(card2 != card1)
         self.assertTrue(value2 != value1)
 
+    def test_resetted_stats(self):
+        self.deck.draw_card(self.player, 2)
+        card1 = self.player.hand_stack.popitem()
+        card2 = self.player.hand_stack.popitem()
+        self.game.reset_game()
+        self.deck.draw_card(self.player, 2)
+        card3 = self.player.hand_stack.popitem()
+        card4 = self.player.hand_stack.popitem()
+        self.assertTrue((card1 != card3 and card1 != card4))
+        self.assertTrue((card2 != card3 and card2 != card4))
 
 if __name__ == '__main__':
     unittest.main()
