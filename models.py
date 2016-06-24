@@ -59,50 +59,51 @@ class Deck():
 
     def draw_card(self, player, amount=1):
         for number in range(amount):
-            player.add_card_to_hand(*self.random_item())
+            player.add_card_to_hand(*self.deck.pop(self.random_item()))
             self.deck_length -= 1
 
     def random_item(self):
-        index = round(random.random() * self.deck_length)
-        return self.deck[index]
+        return round(random.random() * self.deck_length)
 
 
 class Player():
     def __init__(self, name='Player'):
         self.name = name
         self.hand_value = 0
-        self.hand_stack = {}
+        self.hand_stack = []
         self.still_playing = True
         self.busted = False
 
     def add_card_to_hand(self, card, value):
-        if value != 11:
-            self.hand_stack[card] = value
-        temp_value = self.sum_non_aces() 
-        count = 0
+        self.hand_stack.append((card, value))
+        temp_value = self.sum_non_aces()
         ace_count = self.num_aces() 
         if ace_count > 0:
+            count = 0
             while count < ace_count:
                 if temp_value + 11 <= 21:
                     temp_value += 11
-                    self.hand_stack[card] = value
                 else:
                     temp_value += 1
-                    self.hand_stack[card] = 1
+                    index = self.hand_stack.index((card, value))
+                    self.hand_stack[index] = (card, 1)
                 count += 1
         self.hand_value = temp_value
 
     def sum_non_aces(self):
-        return sum(card for card in self.hand_stack.values() if card != 11)
+        return sum(value for _, value in self.hand_stack if value != 11)
 
     def num_aces(self):
-        return len(list(card for card in self.hand_stack.values() if card == 11))
+        return len(list(1 for card, _ in self.hand_stack if card[:3] == 'Ace'))
+
+    def num_of_soft_aces(self):
+        return len(list(value for _, value in self.hand_stack if value == 11))
 
     def show_cards_in_hand(self):
         print("-"*20)
         print("{}'s hand".format(self.name))
         print("-"*20)
-        for card in self.hand_stack.keys():
+        for card, _ in self.hand_stack:
             print(card)
         self.show_hand_value()
     
@@ -124,7 +125,7 @@ class Player():
 
     def reset_stats(self):
         self.hand_value = 0
-        self.hand_stack = {}
+        self.hand_stack = []
         self.still_playing = True
         self.busted = False
 
@@ -135,7 +136,7 @@ class Dealer(Player):
 
     def soft_17(self):
         '''Returns True if the dealers hand value is soft 17. False otherwise'''
-        if self.hand_value == 17 and self.num_aces() >= 1:
+        if self.hand_value == 17 and self.num_of_soft_aces() >= 1:
             return True
         else:
             return False
