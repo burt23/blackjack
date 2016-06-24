@@ -4,7 +4,7 @@ A fully strategic game of blackjack that is played entirely in the command line.
 Current Features:
 ---
 - Currently supports only Python3
-- Gameplay and strategy is similar to real-life casino blackjack. For example, dealer hits on 17.
+- Gameplay and strategy is similar to real-life casino blackjack. For example, in some casinos the dealer is required to hit on soft 17.
 - Infinite amount of players can play in a single game
 - The CLI provides a menu with various gaming options such as allowing the player to view his/her hand, the dealer's hand, or quit or restart the game.
 
@@ -14,7 +14,7 @@ How to Play:
 
 To Do/Features to Add:
 ---
-- Implement tests
+- Implement and fix tests
 - Improve Documentation
 - Reduce code smell
 - Package program into a CLI
