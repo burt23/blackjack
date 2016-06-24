@@ -1,7 +1,12 @@
 import sys, json, random
 
 class Deck():
+    """A deck of 52 cards"""
     def __init__(self):
+        """Attributes:
+            self.deck (list): 52 tuples in a list
+            self.deck_length (int): The num of items in self.deck
+        """
         self.deck = [
             ('Ace of Spades', 11),
             ('2 of Spades', 2),
@@ -58,16 +63,29 @@ class Deck():
         self.deck_length = 52
 
     def draw_card(self, player, amount=1):
+        """Draw 'x' AMOUNT of cards from self.deck to PLAYER"""
         for number in range(amount):
             player.add_card_to_hand(*self.deck.pop(self.random_item()))
             self.deck_length -= 1
 
     def random_item(self):
+        """Return a random list index based on the length of self.deck"""
         return round(random.random() * self.deck_length)
 
 
 class Player():
+    """A single player in the game"""
     def __init__(self, name='Player'):
+        """Attributes:
+            self.name (str): The player's username. Default: Player    
+            self.hand_value (int): The value of the players hand. Default: 0
+            self.hand_stack (list): The card,value tuple of each card in the
+            players hand. Default: []
+            self.still_playing (bool): Whether or not the player is currently
+            playing or has stood. Default: True
+            self.busted (bool): Whethere or not the player has busted. Default:
+            False
+        """
         self.name = name
         self.hand_value = 0
         self.hand_stack = []
@@ -75,6 +93,8 @@ class Player():
         self.busted = False
 
     def add_card_to_hand(self, card, value):
+        """Add card to players hand and reevaluate value of hand based on the
+        number of Ace cards in hand."""
         self.hand_stack.append((card, value))
         temp_value = self.sum_non_aces()
         ace_count = self.num_aces() 
@@ -91,36 +111,40 @@ class Player():
         self.hand_value = temp_value
 
     def sum_non_aces(self):
+        """Return the sum of all non-ace cards in hand"""
         return sum(value for _, value in self.hand_stack if value != 11)
 
     def num_aces(self):
+        """Return the int of ace cards in hand"""
         return len(list(1 for card, _ in self.hand_stack if card[:3] == 'Ace'))
 
     def num_of_soft_aces(self):
+        """Return the int of all soft ace cards in hand"""
         return len(list(value for _, value in self.hand_stack if value == 11))
 
     def show_cards_in_hand(self):
+        """Print all cards in hand and the value of the player's hand"""
         print("-"*20)
         print("{}'s hand".format(self.name))
         print("-"*20)
         for card, _ in self.hand_stack:
             print(card)
-        self.show_hand_value()
-    
-    def show_hand_value(self):
         print("{}'s card value is {}".format(
             self.name,
             self.hand_value))
 
     def stand(self):
+        """Set self.still_playing to False"""
         self.still_playing = False
 
     def check_for_bust(self):
+        """Set self.busted to True if value of hand is over 21"""
         if self.hand_value > 21:
             self.busted = True
             print("{} busts!".format(self.name))
 
     def reset_stats(self):
+        """Set all object attributes back to their default values"""
         self.hand_value = 0
         self.hand_stack = []
         self.still_playing = True
@@ -128,11 +152,15 @@ class Player():
 
 
 class Dealer(Player):
+    """The dealer in the blackjack game. Subclass of Player"""
     def __init__(self):
+        """Attributes: Inherits all attr from Player class
+            self.name (str): The name of the dealer. Default: Dealer
+        """
         Player.__init__(self, "Dealer")        
 
     def soft_17(self):
-        '''Returns True if the dealers hand value is soft 17. False otherwise'''
+        '''Return True if the dealers hand value is soft 17. False otherwise'''
         if self.hand_value == 17 and self.num_of_soft_aces() >= 1:
             return True
         else:
@@ -140,12 +168,20 @@ class Dealer(Player):
 
 
 class Game():
+    """The gameplay of blackjack"""
     def __init__(self):
+        """Attributes:
+            self.dealer (:obj): class Dealer
+            self.players (list): List of all the players in the game
+            self.deck (:obj): class Deck
+        """
         self.dealer = Dealer()
         self.players = []
         self.deck = Deck()
 
     def show_game_options(self, player):
+        """Prints the menu option to the player. Calls do_menu_choice based on
+        players selection"""
         print("-"*20)
         print("It's {}'s turn".format(player.name.upper()))
         print("-"*20)
@@ -161,6 +197,7 @@ class Game():
         self.do_menu_choice(choice, player)
 
     def do_menu_choice(self, choice, player):
+        """Performs steps based on players choice made in the menu options"""
         if choice == 'H':
             self.deck.draw_card(player)
             player.show_cards_in_hand()
@@ -206,13 +243,13 @@ class Game():
                     print("{} wins!".format(player.name))
 
     def force_hit_until_18(self):
+        """Dealer forcefully draws cards until his hand is above 17 or he busts."""
         while self.dealer.hand_value <= 17 and not self.dealer.hand_value >= 21:
             self.deck.draw_card(self.dealer)
             self.dealer.show_cards_in_hand()
-        self.dealer.check_for_bust()
 
     def play_again(self):
-        """ asks player for input to play again, if yes, user/dealer
+        """Game asks player for input to play again, if yes, user/dealer
         stats are reseted. Otherwise, the program ends."""
         choice = str(input("Do you want to play another round? [Y/N]")).strip().upper()
         if choice == "Y":
@@ -225,9 +262,12 @@ class Game():
             self.play_again()
 
     def prepare_game(self):
+        """Collect number of players and their usernames before starting game"""
         self.num_of_players()
 
     def play_game(self):
+        """Game begins by dealing cards to players and dealer. Each player is
+        provided with menu options. Game ends after all hands are compared"""
         self.deal_to_players()
         self.deal_to_dealer()
         for player in self.players:
@@ -235,19 +275,24 @@ class Game():
         self.deal_to_dealer()
         if not self.dealer.soft_17():
             self.force_hit_until_18() 
+            self.dealer.check_for_bust()
         self.compare_hands()
         self.play_again()
 
     def deal_to_players(self):
+        """Deals two cards to each player"""
         for player in self.players:
             self.deck.draw_card(player, 2)
             player.show_cards_in_hand()
 
     def deal_to_dealer(self):
+        """Deals a single card to the dealer"""
         self.deck.draw_card(self.dealer)
         self.dealer.show_cards_in_hand()
 
     def num_of_players(self):
+        """Game prompts user for number and names of players then adds those
+        players to the self.players."""
         num = int(input("How many players are going to play in this round of Blackjack? "))
         for count in range(num):
             name = str(input(
@@ -256,6 +301,7 @@ class Game():
             self.players.append(player)
 
     def reset_game(self):
+        """Resets all attributes of all objects in the Game class"""
         for player in self.players:
             player.reset_stats()
         self.dealer.reset_stats()
