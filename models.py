@@ -204,7 +204,6 @@ class Game():
                         print("{} lost".format(player.name))
                 else:
                     print("{} wins!".format(player.name))
-        self.play_again()
 
     def force_hit_until_18(self):
         while self.dealer.hand_value <= 17 and not self.dealer.hand_value >= 21:
@@ -237,6 +236,7 @@ class Game():
         if not self.dealer.soft_17():
             self.force_hit_until_18() 
         self.compare_hands()
+        self.play_again()
 
     def deal_to_players(self):
         for player in self.players:
