@@ -116,12 +116,9 @@ class Player():
         self.still_playing = False
 
     def check_for_bust(self):
-        if self.hand_value <= 21:
-            return False
-        else:
+        if self.hand_value > 21:
             self.busted = True
             print("{} busts!".format(self.name))
-            return True
 
     def reset_stats(self):
         self.hand_value = 0
@@ -167,7 +164,8 @@ class Game():
         if choice == 'H':
             self.deck.draw_card(player)
             player.show_cards_in_hand()
-            if not player.check_for_bust():
+            player.check_for_bust()
+            if player.busted == False:
                 self.show_game_options(player) 
         elif choice == 'S':
             player.stand()
@@ -210,12 +208,9 @@ class Game():
 
     def force_hit_until_18(self):
         while self.dealer.hand_value <= 17 and not self.dealer.hand_value >= 21:
-            print("\nDealer is dealing himself a card. . .\n")
             self.deck.draw_card(self.dealer)
             self.dealer.show_cards_in_hand()
-        if self.dealer.hand_value > 21:
-            self.dealer.busted = True
-            print("Dealer busts")
+        self.dealer.check_for_bust()
 
     def play_again(self):
         """ asks player for input to play again, if yes, user/dealer
