@@ -117,14 +117,13 @@ class Player():
                     temp_value += 11
                 else:
                     temp_value += 1
-                    index = self.hand_stack.index(card)
-                    self.hand_stack[index]['Value'] = 1
                 count += 1
         self.hand_value = temp_value
+        print("hand value: " + str(self.hand_value))
 
     def sum_non_aces(self):
         """Return the sum of all non-ace cards in hand"""
-        return sum(v['Value'] for v in self.hand_stack if v['Value'] != 11)
+        return sum(c['Value'] for c in self.hand_stack if c['Card'][:3] != 'Ace')
 
     def num_aces(self):
         """Return the int of ace cards in hand"""
@@ -267,13 +266,19 @@ class Game():
                     player.name, str(player.current_bet)))
             else: 
                 if not self.dealer.busted:
-                    if player.hand_value > self.dealer.hand_value:
+                    if player.hand_value == self.dealer.hand_value:
+                        print("Push! {} and the dealer have the same hand.".format(player.name))
+                    elif player.hand_value == 21:
+                        player.money += math.floor(player.current_bet+(player.current_bet*1.5))
+                        player.wins += 1
+                        print("BLACKJACK! {} wins {} dollars".format(
+                            player.name,
+                            math.floor(player.current_bet+(player.current_bet*1.5))))
+                    elif player.hand_value > self.dealer.hand_value:
                         player.money += player.current_bet
                         player.wins += 1
                         print("{} wins and gets {} dollars".format(
                             player.name, str(player.current_bet*2)))
-                    elif player.hand_value == self.dealer.hand_value:
-                        print("Push! {} and the dealer have the same hand.".format(player.name))
                     else: 
                         player.money -= player.current_bet
                         player.losses += 1

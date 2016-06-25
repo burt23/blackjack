@@ -80,6 +80,19 @@ class CardDealingTest(Test):
         self.assertTrue(self.player.hand_value == 14, 
             "Ace + 2 + Ace should equal 14 but instead got {}".format(self.player.hand_value))
 
+    def test_busted_hand_with_ace(self):
+        card1 = {"Card": "Five of Diamonds", "Value": 5}
+        card2 = {"Card": "Ace of Diamonds", "Value": 11}
+        card3 = {"Card": "Ten of Hearts", "Value": 10}
+        card4 = {"Card": "Jack of Hearts", "Value": 10}
+        self.player.add_card_to_hand(card1)
+        self.player.add_card_to_hand(card2)
+        self.player.add_card_to_hand(card3)
+        self.player.add_card_to_hand(card4)
+        self.assertTrue(self.player.hand_value == 26,
+            "Hand should equal 26 but instead got {}".format(
+                self.player.hand_value))
+
     def test_blackjack_hand_winnings_of_3_to_2_rate(self):
         card1 = {"Card": "Ace of Diamonds", "Value": 11}
         card2 = {"Card": "Ten of Diamonds", "Value": 10}
