@@ -105,7 +105,7 @@ class Player():
         self.current_bet = 5
 
     def add_card_to_hand(self, card):
-        """Add card to players hand and reevaluate value of hand based on the
+        """Add card and it's value to player's hand based on the
         number of Ace cards in hand."""
         self.hand_stack.append(card)
         temp_value = self.sum_non_aces()
