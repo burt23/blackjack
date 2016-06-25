@@ -80,6 +80,16 @@ class CardDealingTest(Test):
         self.assertTrue(self.player.hand_value == 14, 
             "Ace + 2 + Ace should equal 14 but instead got {}".format(self.player.hand_value))
 
+    def test_blackjack_hand_winnings_of_3_to_2_rate(self):
+        card1 = {"Card": "Ace of Diamonds", "Value": 11}
+        card2 = {"Card": "Ten of Diamonds", "Value": 10}
+        self.player.add_card_to_hand(card1)
+        self.player.add_card_to_hand(card2)
+        self.player.current_bet = 10
+        self.player.money = 100
+        self.game.compare_hands()
+        self.assertTrue(self.player.money == 125)
+
 
 class Soft17Test(Test):
     
