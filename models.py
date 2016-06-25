@@ -119,7 +119,6 @@ class Player():
                     temp_value += 1
                 count += 1
         self.hand_value = temp_value
-        print("hand value: " + str(self.hand_value))
 
     def sum_non_aces(self):
         """Return the sum of all non-ace cards in hand"""
@@ -268,7 +267,10 @@ class Game():
                 if not self.dealer.busted:
                     if player.hand_value == self.dealer.hand_value:
                         print("Push! {} and the dealer have the same hand.".format(player.name))
-                    elif player.hand_value == 21:
+                    elif player.hand_value == 21 and \
+                        len(player.hand_stack) == 2 and \
+                        (player.hand_stack[0]['Value'] == 11 or \
+                        player.hand_stack[1]['Value'] == 11):
                         player.money += math.floor(player.current_bet+(player.current_bet*1.5))
                         player.wins += 1
                         print("BLACKJACK! {} wins {} dollars".format(
