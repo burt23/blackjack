@@ -20,7 +20,7 @@ class PrepareGameTest(Test):
     def test_game_initialization(self):
         pass 
     
-class CardDealingTest(Test):
+class BustsTest(Test):
 
     def test_of_bust(self):
         card1 = {"Card": "8 of Diamonds", "Value": 8}
@@ -41,6 +41,21 @@ class CardDealingTest(Test):
         self.player.add_card_to_hand(card3)
         self.assertTrue(self.player.hand_value == 25, 
             "8 + 10 + 7 should equal 25 but instead got {}".format(self.player.hand_value))
+
+    def test_busted_hand_value_with_ace(self):
+        card1 = {"Card": "Five of Diamonds", "Value": 5}
+        card2 = {"Card": "Ace of Diamonds", "Value": 11}
+        card3 = {"Card": "Ten of Hearts", "Value": 10}
+        card4 = {"Card": "Jack of Hearts", "Value": 10}
+        self.player.add_card_to_hand(card1)
+        self.player.add_card_to_hand(card2)
+        self.player.add_card_to_hand(card3)
+        self.player.add_card_to_hand(card4)
+        self.assertTrue(self.player.hand_value == 26,
+            "Hand should equal 26 but instead got {}".format(
+                self.player.hand_value))
+
+class NonBustsTest(Test):
 
     def test_nonbusted_hand_value_with_one_ace(self):
         card1 = {"Card": "Ace of Hearts", "Value": 11}
@@ -80,18 +95,7 @@ class CardDealingTest(Test):
         self.assertTrue(self.player.hand_value == 14, 
             "Ace + 2 + Ace should equal 14 but instead got {}".format(self.player.hand_value))
 
-    def test_busted_hand_with_ace(self):
-        card1 = {"Card": "Five of Diamonds", "Value": 5}
-        card2 = {"Card": "Ace of Diamonds", "Value": 11}
-        card3 = {"Card": "Ten of Hearts", "Value": 10}
-        card4 = {"Card": "Jack of Hearts", "Value": 10}
-        self.player.add_card_to_hand(card1)
-        self.player.add_card_to_hand(card2)
-        self.player.add_card_to_hand(card3)
-        self.player.add_card_to_hand(card4)
-        self.assertTrue(self.player.hand_value == 26,
-            "Hand should equal 26 but instead got {}".format(
-                self.player.hand_value))
+class WinningsTest(Tes):
 
     def test_blackjack_hand_winnings_of_3_to_2_rate(self):
         card1 = {"Card": "Ace of Diamonds", "Value": 11}
