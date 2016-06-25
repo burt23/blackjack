@@ -1,4 +1,4 @@
-import sys, json, random
+import sys, json, math, random
 
 class Deck():
     """A deck of 52 cards"""
@@ -8,69 +8,70 @@ class Deck():
             self.deck_length (int): The num of items in self.deck
         """
         self.deck = [
-            ('Ace of Spades', 11),
-            ('2 of Spades', 2),
-            ('3 of Spades', 3),
-            ('4 of Spades', 4),
-            ('5 of Spades', 5),
-            ('6 of Spades', 6),
-            ('7 of Spades', 7),
-            ('8 of Spades', 8),
-            ('9 of Spades', 9),
-            ('10 of Spades', 10),
-            ('Jack of Spades', 10),
-            ('Queen of Spades', 10),
-            ('King of Spades', 10),
-            ('Ace of Hearts', 11),
-            ('2 of Hearts', 2),
-            ('3 of Hearts', 3),
-            ('4 of Hearts', 4),
-            ('5 of Hearts', 5),
-            ('6 of Hearts', 6),
-            ('7 of Hearts', 7),
-            ('8 of Hearts', 8),
-            ('9 of Hearts', 9),
-            ('10 of Hearts', 10),
-            ('Jack of Hearts', 10),
-            ('Queen of Hearts', 10),
-            ('King of Hearts', 10),
-            ('Ace of Clubs', 11),
-            ('2 of Clubs', 2),
-            ('3 of Clubs', 3),
-            ('4 of Clubs', 4),
-            ('5 of Clubs', 5),
-            ('6 of Clubs', 6),
-            ('7 of Clubs', 7),
-            ('8 of Clubs', 8),
-            ('9 of Clubs', 9),
-            ('10 of Clubs', 10),
-            ('Jack of Clubs', 10),
-            ('Queen of Clubs', 10),
-            ('King of Clubs', 10),
-            ('Ace of Diamonds', 11),
-            ('2 of Diamonds', 2),
-            ('3 of Diamonds', 3),
-            ('4 of Diamonds', 4),
-            ('5 of Diamonds', 5),
-            ('6 of Diamonds', 6),
-            ('7 of Diamonds', 7),
-            ('8 of Diamonds', 8),
-            ('9 of Diamonds', 9),
-            ('10 of Diamonds', 10),
-            ('Jack of Diamonds', 10),
-            ('Queen of Diamonds', 10),
-            ('King of Diamonds', 10)]
+            {'Card': 'Ace of Spades', 'Value': 11},
+            {'Card': '2 of Spades', 'Value': 2},
+            {'Card': '3 of Spades', 'Value': 3},
+            {'Card': '4 of Spades', 'Value': 4},
+            {'Card': '5 of Spades', 'Value': 5},
+            {'Card': '6 of Spades', 'Value': 6},
+            {'Card': '7 of Spades', 'Value': 7},
+            {'Card': '8 of Spades', 'Value': 8},
+            {'Card': '9 of Spades', 'Value': 9},
+            {'Card': '10 of Spades', 'Value': 10},
+            {'Card': 'Jack of Spades', 'Value': 10},
+            {'Card': 'Queen of Spades', 'Value': 10},
+            {'Card': 'King of Spades', 'Value': 10},
+            {'Card': 'Ace of Hearts', 'Value': 11},
+            {'Card': '2 of Hearts', 'Value': 2},
+            {'Card': '3 of Hearts', 'Value': 3},
+            {'Card': '4 of Hearts', 'Value': 4},
+            {'Card': '5 of Hearts', 'Value': 5},
+            {'Card': '6 of Hearts', 'Value': 6},
+            {'Card': '7 of Hearts', 'Value': 7},
+            {'Card': '8 of Hearts', 'Value': 8},
+            {'Card': '9 of Hearts', 'Value': 9},
+            {'Card': '10 of Hearts', 'Value': 10},
+            {'Card': 'Jack of Hearts', 'Value': 10},
+            {'Card': 'Queen of Hearts', 'Value': 10},
+            {'Card': 'King of Hearts', 'Value': 10},
+            {'Card': 'Ace of Clubs', 'Value': 11},
+            {'Card': '2 of Clubs', 'Value': 2},
+            {'Card': '3 of Clubs', 'Value': 3},
+            {'Card': '4 of Clubs', 'Value': 4},
+            {'Card': '5 of Clubs', 'Value': 5},
+            {'Card': '6 of Clubs', 'Value': 6},
+            {'Card': '7 of Clubs', 'Value': 7},
+            {'Card': '8 of Clubs', 'Value': 8},
+            {'Card': '9 of Clubs', 'Value': 9},
+            {'Card': '10 of Clubs', 'Value': 10},
+            {'Card': 'Jack of Clubs', 'Value': 10},
+            {'Card': 'Queen of Clubs', 'Value': 10},
+            {'Card': 'King of Clubs', 'Value': 10},
+            {'Card': 'Ace of Diamonds', 'Value': 11},
+            {'Card': '2 of Diamonds', 'Value': 2},
+            {'Card': '3 of Diamonds', 'Value': 3},
+            {'Card': '4 of Diamonds', 'Value': 4},
+            {'Card': '5 of Diamonds', 'Value': 5},
+            {'Card': '6 of Diamonds', 'Value': 6},
+            {'Card': '7 of Diamonds', 'Value': 7},
+            {'Card': '8 of Diamonds', 'Value': 8},
+            {'Card': '9 of Diamonds', 'Value': 9},
+            {'Card': '10 of Diamonds', 'Value': 10},
+            {'Card': 'Jack of Diamonds', 'Value': 10},
+            {'Card': 'Queen of Diamonds', 'Value': 10},
+            {'Card': 'King of Diamonds', 'Value': 10}]
         self.deck_length = 52
 
     def draw_card(self, player, amount=1):
         """Draw 'x' AMOUNT of cards from self.deck to PLAYER"""
         for number in range(amount):
             self.deck_length -= 1
-            player.add_card_to_hand(*self.deck.pop(self.random_item()))
+            player.add_card_to_hand(self.deck.pop(self.random_int()))
 
-    def random_item(self):
+    def random_int(self):
         """Return a random list index based on the length of self.deck"""
-        return round(random.random() * self.deck_length)
+        return math.floor(random.random()*self.deck_length)
+        #return round(random.random() * self.deck_length)
 
 
 class Player():
@@ -92,10 +93,10 @@ class Player():
         self.still_playing = True
         self.busted = False
 
-    def add_card_to_hand(self, card, value):
+    def add_card_to_hand(self, card):
         """Add card to players hand and reevaluate value of hand based on the
         number of Ace cards in hand."""
-        self.hand_stack.append((card, value))
+        self.hand_stack.append(card)
         temp_value = self.sum_non_aces()
         ace_count = self.num_aces() 
         if ace_count > 0:
@@ -105,30 +106,30 @@ class Player():
                     temp_value += 11
                 else:
                     temp_value += 1
-                    index = self.hand_stack.index((card, value))
-                    self.hand_stack[index] = (card, 1)
+                    index = self.hand_stack.index(card)
+                    self.hand_stack[index]['Value'] = 1
                 count += 1
         self.hand_value = temp_value
 
     def sum_non_aces(self):
         """Return the sum of all non-ace cards in hand"""
-        return sum(value for _, value in self.hand_stack if value != 11)
+        return sum(v['Value'] for v in self.hand_stack if v['Value'] != 11)
 
     def num_aces(self):
         """Return the int of ace cards in hand"""
-        return len(list(1 for card, _ in self.hand_stack if card[:3] == 'Ace'))
+        return len(list(1 for c in self.hand_stack if c['Card'][:3] == 'Ace'))
 
     def num_of_soft_aces(self):
         """Return the int of all soft ace cards in hand"""
-        return len(list(value for _, value in self.hand_stack if value == 11))
+        return len(list(v for v in self.hand_stack if v['Value'] == 11))
 
     def show_cards_in_hand(self):
         """Print all cards in hand and the value of the player's hand"""
         print("-"*20)
         print("{}'s hand".format(self.name))
         print("-"*20)
-        for card, _ in self.hand_stack:
-            print(card)
+        for card in self.hand_stack:
+            print(card['Card'])
         print("{}'s card value is {}".format(
             self.name,
             self.hand_value))
