@@ -4,7 +4,7 @@ class Deck():
     """A deck of 52 cards"""
     def __init__(self):
         """Attributes:
-            self.deck (list): 52 tuples in a list
+            self.deck (list): 52 dictionaries in a list
             self.deck_length (int): The num of items in self.deck
         """
         self.deck = [
