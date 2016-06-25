@@ -71,12 +71,12 @@ class Deck():
     def random_int(self):
         """Return a random list index based on the length of self.deck"""
         return math.floor(random.random()*self.deck_length)
-        #return round(random.random() * self.deck_length)
 
 
 class Player():
     """A single player in the game"""
-    def __init__(self, name='Player'):
+    def __init__(self, name='Player', money=1000, wins=0, 
+            losses=0, save_to_file= False):
         """Attributes:
             self.name (str): The player's username. Default: Player    
             self.hand_value (int): The value of the players hand. Default: 0
@@ -84,14 +84,25 @@ class Player():
             players hand. Default: []
             self.still_playing (bool): Whether or not the player is currently
             playing or has stood. Default: True
-            self.busted (bool): Whethere or not the player has busted. Default:
+            self.busted (bool): Whether or not the player has busted. Default:
             False
+            self.money (int): Int of money user has. Default: 1000
+            self.losses (int): Int of total losses in game. Default: 0
+            self.wins (int): Int of total wins in game. Default: 0
+            self.save_to_file (bool): Whether or not the players info will be
+            saved to file. Default: False
+            self.current_bet (int): Int of current bet in round. Default: 5
         """
         self.name = name
         self.hand_value = 0
         self.hand_stack = []
         self.still_playing = True
         self.busted = False
+        self.money = money
+        self.losses = losses
+        self.wins = wins
+        self.save_to_file = save_to_file
+        self.current_bet = 5
 
     def add_card_to_hand(self, card):
         """Add card to players hand and reevaluate value of hand based on the
@@ -150,6 +161,7 @@ class Player():
         self.hand_stack = []
         self.still_playing = True
         self.busted = False
+        self.current_bet = 5
 
 
 class Dealer(Player):
@@ -175,10 +187,13 @@ class Game():
             self.dealer (:obj): class Dealer
             self.players (list): List of all the players in the game
             self.deck (:obj): class Deck
+            self.data (dict): JSON dictionary with a list of player info such as
+            username, wins, losses, and money
         """
         self.dealer = Dealer()
         self.players = []
         self.deck = Deck()
+        self.data = None
 
     def show_game_options(self, player):
         """Prints the menu option to the player. Calls do_menu_choice based on
@@ -189,6 +204,7 @@ class Game():
         choice = str(input("Select an option:\n\
 - View my hand [V]\n\
 - View dealer's hand [D]\n\
+- View my money, current bet, wins and losses [M]\n\
 - Hit [H]\n\
 - Stand [S]\n\
 - Restart game [R]\n\
@@ -211,6 +227,12 @@ class Game():
                 print("{} stood. Let's see the dealer's hand".format(player.name))
             else:
                 print("{} stood. Let's see the next player play.".format(player.name))
+        elif choice == 'M':
+            print("Money: {} dollars\nCurrent bet: {} dollars\nWins: {}\nLosses: {}".format(
+                str(player.money-player.current_bet),
+                str(player.current_bet),
+                str(player.wins), str(player.losses)))
+            self.show_game_options(player)
         elif choice == 'V':
             player.show_cards_in_hand()
             self.show_game_options(player)
@@ -218,9 +240,17 @@ class Game():
             self.dealer.show_cards_in_hand()
             self.show_game_options(player)
         elif choice == 'R':
-            self.reset_game()
-            self.play_game()
+            restart = str(input(
+                "You will lose your bet, still want to restart? [Y/N] ")).strip().upper()
+            if restart == 'Y':
+                player.money -= player.current_bet
+                self.reset_game()
+                self.get_player_bets()
+                self.play_game()
+            else:
+                self.show_game_options(player)
         elif choice == 'Q':
+            self.write_json_data()
             sys.exit("Goodbye")
         else:
             print("Error: Choose a valid menu option.")
@@ -231,17 +261,29 @@ class Game():
         winners are printed. Game ends afterwards """
         for player in self.players:
             if player.busted:
-                print("{} busted".format(player.name))
+                player.money -= player.current_bet
+                player.losses += 1
+                print("{} busted and losses {} dollars".format(
+                    player.name, str(player.current_bet)))
             else: 
                 if not self.dealer.busted:
                     if player.hand_value > self.dealer.hand_value:
-                        print("{} wins!".format(player.name))
+                        player.money += player.current_bet
+                        player.wins += 1
+                        print("{} wins and gets {} dollars".format(
+                            player.name, str(player.current_bet*2)))
                     elif player.hand_value == self.dealer.hand_value:
                         print("Push! {} and the dealer have the same hand.".format(player.name))
                     else: 
-                        print("{} lost".format(player.name))
+                        player.money -= player.current_bet
+                        player.losses += 1
+                        print("{} lost and losses {} dollars".format(
+                            player.name, str(player.current_bet)))
                 else:
-                    print("{} wins!".format(player.name))
+                    player.money += player.current_bet
+                    player.wins += 1
+                    print("{} wins and gets {} dollars".format(
+                        player.name, str(player.current_bet*2)))
 
     def force_hit_until_18(self):
         """Dealer forcefully draws cards until his hand is above 17 or he busts."""
@@ -255,8 +297,10 @@ class Game():
         choice = str(input("Do you want to play another round? [Y/N]")).strip().upper()
         if choice == "Y":
             self.reset_game()
+            self.get_player_bets()
             self.play_game()
         elif choice == "N":
+            self.write_json_data()
             sys.exit("Ok. See you next time")
         else:
             print("Error: Choose 'Y' or 'N'. ")
@@ -264,7 +308,8 @@ class Game():
 
     def prepare_game(self):
         """Collect number of players and their usernames before starting game"""
-        self.num_of_players()
+        self.get_player_info()
+        self.get_player_bets()
 
     def play_game(self):
         """Game begins by dealing cards to players and dealer. Each player is
@@ -291,15 +336,49 @@ class Game():
         self.deck.draw_card(self.dealer)
         self.dealer.show_cards_in_hand()
 
-    def num_of_players(self):
-        """Game prompts user for number and names of players then adds those
+    def get_player_info(self):
+        """Game prompts user for players info then adds those
         players to the self.players."""
         num = int(input("How many players are going to play in this round of Blackjack? "))
         for count in range(num):
             name = str(input(
-                "What is player {}'s username? ".format(count+1)).title())
-            player = Player(name)
-            self.players.append(player)
+                "What is player {}'s username? ".format(count+1)))
+            player = self.get_json_player_info(name)
+            if not player:
+                self.create_new_player(name)
+            else:
+                self.json_to_player(player)
+
+    def get_player_bets(self):
+        for player in self.players:
+            print("You have {} dollars to bet with".format(player.money))
+            bet = int(input("{}, What is your minimum bet? ".format(
+                player.name)))
+            player.current_bet = bet 
+
+    def json_to_player(self, jsonobj):
+        player = Player(
+            name = jsonobj['username'],
+            money = jsonobj['money'],
+            wins = jsonobj['wins'],
+            losses = jsonobj['losses'],
+            save_to_file = True
+            )
+        self.players.append(player)
+
+    def get_json_player_info(self, name):
+        self.data = self.get_json_data(name)
+        for player in self.data['players']:
+            if player['username'] == name:
+                return player
+
+    def create_new_player(self, name):
+        choice = str(input("The username {} could not be found. Do you want to create a new user with this username? [Y/N]".format(
+            name))).strip().upper()
+        if choice == 'Y':
+            player = Player(name=name, save_to_file=True)
+        else:
+            self.players.append(Player(name))
 
     def reset_game(self):
         """Resets all attributes of all objects in the Game class"""
@@ -308,17 +387,29 @@ class Game():
         self.dealer.reset_stats()
         self.deck = Deck()
 
-    def get_data(self, username):
+    def get_json_data(self, username):
         try:
             with open('data.json', 'r') as f:
-                data = json.loads(f)
-                print(data)
+                return json.loads(f.read())
         except Exception as err:
             print("Error: {}".format(err))
 
-    def write_data(self, username, money=None, wins=None, losses=None):
+    def write_json_data(self):
+        for player in self.players:
+            if player.save_to_file:
+                json_player = {
+                    'username' : player.name,
+                    'wins' : player.wins,
+                    'losses' : player.losses,
+                    'money': player.money
+                    }
+                index = 0
+                for i, dic in enumerate(self.data['players']):
+                    if dic['username'] == player.name:
+                        index = i
+                self.data['players'][index] = json_player
         try:
             with open('data.json', 'w') as f:
-                pass
+                json.dump(self.data, f)
         except Exception as err:
             print("Error: {}".format(err))

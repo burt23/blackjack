@@ -1,7 +1,1 @@
-{
-"player": {
-  "player_wins" : 0,
-  "player_losses" : 0,
-  "player_money" : 0
-  }
-}
+{"players": [{"wins": 1, "username": "keitha", "losses": 1, "money": 900}]}
