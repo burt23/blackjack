@@ -3,7 +3,7 @@ A strategic game of blackjack that is played entirely in the command line.
 
 Author:
 ----
-- Keith Alpichi](https://keithalpichi.herokuapp.com)
+- [Keith Alpichi](https://keithalpichi.herokuapp.com)
  - [@keithalpichi](https://twitter.com/keithalpichi/) on Twitter
  - Email: info(@)keithalpichi(dot)com
  - [Linkedin](https://www.linkedin.com/in/keithalpichi)
