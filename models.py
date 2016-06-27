@@ -199,7 +199,9 @@ class Game():
         print("-"*20)
         print("It's {}'s turn".format(player.name.upper()))
         print("-"*20)
-        choice = str(input("Select an option:\n\
+        while True:
+            try:
+                choice = str(input("Select an option:\n\
 - View my hand [V]\n\
 - View dealer's hand [D]\n\
 - View my money, current bet, wins and losses [M]\n\
@@ -209,6 +211,17 @@ class Game():
 - Quit [Q]\n\
 ------------------------\n\
 ")).strip().upper()
+            except ValueError:
+                print("Sorry, please choose a valid option. Try again.")
+                continue
+            if isinstance(choice, int):
+                print("Provide a letter not a number.")
+                continue
+            if choice not in ['V', 'D', 'M', 'H', 'S', 'R', 'Q']:
+                print("Provide an appropriate letter- V, D, M, H, S, R, Q")
+                continue
+            else:
+                break
         self.do_menu_choice(choice, player)
 
     def do_menu_choice(self, choice, player):
@@ -238,8 +251,15 @@ class Game():
             self.dealer.show_cards_in_hand()
             self.show_game_options(player)
         elif choice == 'R':
-            restart = str(input(
-                "You will lose your bet, still want to restart? [Y/N] ")).strip().upper()
+            while True:
+                try:
+                    restart = str(input(
+                        "You will lose your bet, still want to restart? [Y/N] ")).strip().upper()
+                except ValueError:
+                    print("Sorry, choose a valid option 'Y' or 'N'.")
+                    continue
+                else:
+                    break
             if restart == 'Y':
                 player.money -= player.current_bet
                 self.reset_game()
@@ -301,17 +321,27 @@ class Game():
     def play_again(self):
         """Game asks player for input to play again, if yes, user/dealer
         stats are reseted. Otherwise, the program ends."""
-        choice = str(input("Do you want to play another round? [Y/N]")).strip().upper()
+        while True:
+            try:
+                choice = str(input("Do you want to play another round? [Y/N]")).strip().upper()
+            except ValueError:
+                print("Sorry, choose a valid option - Y or N.")
+                continue
+            if isinstance(choice, int):
+                print("Provide a letter not a number")
+                continue
+            if choice not in ['N','Y']:
+                print("Choose Y or N")
+                continue
+            else:
+                break
         if choice == "Y":
             self.reset_game()
             self.get_player_bets()
             self.play_game()
-        elif choice == "N":
+        else:
             self.write_json_data()
             sys.exit("Ok. See you next time")
-        else:
-            print("Error: Choose 'Y' or 'N'. ")
-            self.play_again()
 
     def prepare_game(self):
         """Collect number of players and their usernames before starting game"""
@@ -346,10 +376,30 @@ class Game():
     def get_player_info(self):
         """Game prompts user for players info then adds those
         players to the self.players."""
-        num = int(input("How many players are going to play in this round of Blackjack? "))
+        while True:
+            try:
+                num = int(input("How many players are going to play in this round of Blackjack? "))
+            except ValueError:
+                print("Sorry, choose a valid option.")
+                continue
+            if isinstance(num, str):
+                print("Provide a number not a letter or a word")
+                continue
+            else:
+                break
         for count in range(num):
-            name = str(input(
-                "What is player {}'s username? ".format(count+1)))
+            while True:
+                try:
+                    name = str(input(
+                        "What is player {}'s username? ".format(count+1)))
+                except ValueError:
+                    print("Sorry, choose a valid option")
+                    continue
+                if isinstance(name, int):
+                    print("Username must letters not numbers")
+                    continue
+                else:
+                    break
             player = self.get_json_player_info(name)
             if not player:
                 self.create_new_player(name)
@@ -359,8 +409,24 @@ class Game():
     def get_player_bets(self):
         for player in self.players:
             print("You have {} dollars to bet with".format(player.money))
-            bet = int(input("{}, What is your minimum bet? ".format(
-                player.name)))
+            while True:
+                try:
+                    bet = int(input("{}, What is your minimum bet? ".format(
+                        player.name)))
+                except ValueError:
+                    print("Sorry, choose a valid number.")
+                    continue
+                if isinstance(bet, str):
+                    print("Provide a number not a letter or word")
+                    continue
+                elif bet < 1:
+                    print("Provide a positive bet above zero")
+                    continue
+                elif (player.money - bet) < 0:
+                    print("You don't have enough money to bet this amount.")
+                    continue
+                else:
+                    break
             player.current_bet = bet 
 
     def json_to_player(self, jsonobj):
@@ -380,8 +446,15 @@ class Game():
                 return player
 
     def create_new_player(self, name):
-        choice = str(input("The username {} could not be found. Do you want to create a new user with this username? [Y/N]".format(
-            name))).strip().upper()
+        while True:
+            try:
+                choice = str(input("The username {} could not be found. Do you want to create a new user with this username? [Y/N]".format(
+                    name))).strip().upper()
+            except ValueError:
+                print("Sorry, choose a valid option- Y or N")
+                continue
+            else:
+                break
         if choice == 'Y':
             player = Player(name=name, save_to_file=True)
         else:
