@@ -1,4 +1,5 @@
-import sys, json, math, random
+import json, math, random
+from views import *
 
 class Deck():
     """A deck of 52 cards"""
@@ -132,24 +133,19 @@ class Player():
         """Return the int of all soft ace cards in hand"""
         return len(list(v for v in self.hand_stack if v['Value'] == 11))
 
-    def show_cards_in_hand(self):
-        """Print all cards in hand and the value of the player's hand"""
-        print("-"*20)
-        print("{}'s hand".format(self.name))
-        print("-"*20)
-        for card in self.hand_stack:
-            print(card['Card'])
-        print("{}'s card value is {}".format(
-            self.name,
-            self.hand_value))
-
     def stand(self):
         """Set self.still_playing to False"""
         self.still_playing = False
+        show_msg_after_stand(self)
 
     def check_for_bust(self):
         """Set self.busted to True if value of hand is over 21"""
         if self.hand_value > 21:
+            self.still_playing = False
+            return True
+
+    def handle_bust(self):
+        if self.check_for_bust():
             self.busted = True
             print("{} busts!".format(self.name))
 
@@ -193,155 +189,108 @@ class Game():
         self.deck = Deck()
         self.data = None
 
-    def show_game_options(self, player):
-        """Prints the menu option to the player. Calls do_menu_choice based on
-        players selection"""
-        print("-"*20)
-        print("It's {}'s turn".format(player.name.upper()))
-        print("-"*20)
-        while True:
-            try:
-                choice = str(input("Select an option:\n\
-- View my hand [V]\n\
-- View dealer's hand [D]\n\
-- View my money, current bet, wins and losses [M]\n\
-- Hit [H]\n\
-- Stand [S]\n\
-- Restart game [R]\n\
-- Quit [Q]\n\
-------------------------\n\
-")).strip().upper()
-            except ValueError:
-                print("Sorry, please choose a valid option. Try again.")
-                continue
-            if isinstance(choice, int):
-                print("Provide a letter not a number.")
-                continue
-            if choice not in ['V', 'D', 'M', 'H', 'S', 'R', 'Q']:
-                print("Provide an appropriate letter- V, D, M, H, S, R, Q")
-                continue
-            else:
-                break
-        self.do_menu_choice(choice, player)
+    def handle_options(self, player, choice):
+        """Perform actions based on players choice"""
+        if choice in ['M', 'D', 'V']:
+            self.handle_info_choice(player, choice)
+        else:
+            self.handle_game_choice(player, choice)
 
-    def do_menu_choice(self, choice, player):
-        """Performs steps based on players choice made in the menu options"""
+    def handle_game_choice(self, player, choice):
+        """Perform hit, stand, restart or quit options"""
         if choice == 'H':
-            self.deck.draw_card(player)
-            player.show_cards_in_hand()
-            player.check_for_bust()
-            if player.busted == False:
-                self.show_game_options(player) 
+            self.handle_hit(player)
         elif choice == 'S':
             player.stand()
-            if len(self.players) == 1:
-                print("{} stood. Let's see the dealer's hand".format(player.name))
-            else:
-                print("{} stood. Let's see the next player play.".format(player.name))
-        elif choice == 'M':
-            print("Money: {} dollars\nCurrent bet: {} dollars\nWins: {}\nLosses: {}".format(
-                str(player.money-player.current_bet),
-                str(player.current_bet),
-                str(player.wins), str(player.losses)))
-            self.show_game_options(player)
-        elif choice == 'V':
-            player.show_cards_in_hand()
-            self.show_game_options(player)
-        elif choice == 'D':
-            self.dealer.show_cards_in_hand()
-            self.show_game_options(player)
         elif choice == 'R':
-            while True:
-                try:
-                    restart = str(input(
-                        "You will lose your bet, still want to restart? [Y/N] ")).strip().upper()
-                except ValueError:
-                    print("Sorry, choose a valid option 'Y' or 'N'.")
-                    continue
-                else:
-                    break
-            if restart == 'Y':
+            restart_choice = show_restart_prompt()
+            if restart_choice == 'Y':
                 player.money -= player.current_bet
-                self.reset_game()
-                self.get_player_bets()
-                self.play_game()
-            else:
-                self.show_game_options(player)
-        elif choice == 'Q':
-            self.write_json_data()
-            sys.exit("Goodbye")
+                self.restart_game()
         else:
-            print("Error: Choose a valid menu option.")
-            self.show_game_options(player)
+            self.write_json_data()
+            show_exit_msg()
+
+    def handle_info_choice(self, player, choice):
+        """Shows user info requested from the menu"""
+        if choice == 'D':
+            show_cards(self.dealer)
+        elif choice == 'V':
+            show_cards(player)
+        else:
+            show_player_info(player)
+    
+    def handle_hit(self, player):
+        """Card is drawn to user and the game checks if he/she busts"""
+        self.deck.draw_card(player)
+        show_cards(player)
+        player.handle_bust()
+
+    def show_options(self, player):
+        while player.still_playing:
+            choice = show_options(player)
+            self.handle_options(player, choice)
 
     def compare_hands(self):
         """All player's and dealer's scores are compared and
         winners are printed. Game ends afterwards """
         for player in self.players:
             if player.busted:
-                player.money -= player.current_bet
-                player.losses += 1
-                print("{} busted and losses {} dollars".format(
-                    player.name, str(player.current_bet)))
+                self.handle_outcome(player, "bust")
             else: 
                 if not self.dealer.busted:
                     if player.hand_value == self.dealer.hand_value:
-                        print("Push! {} and the dealer have the same hand.".format(player.name))
-                    elif player.hand_value == 21 and \
-                        len(player.hand_stack) == 2 and \
-                        (player.hand_stack[0]['Value'] == 11 or \
-                        player.hand_stack[1]['Value'] == 11):
-                        player.money += math.floor(player.current_bet+(player.current_bet*1.5))
-                        player.wins += 1
-                        print("BLACKJACK! {} wins {} dollars".format(
-                            player.name,
-                            math.floor(player.current_bet+(player.current_bet*1.5))))
+                        show_push_msg(player)
+                    elif self.check_for_blackjack(player):
+                        self.handle_outcome(player, "blackjack")
                     elif player.hand_value > self.dealer.hand_value:
-                        player.money += player.current_bet
-                        player.wins += 1
-                        print("{} wins and gets {} dollars".format(
-                            player.name, str(player.current_bet*2)))
+                        self.handle_outcome(player, "win")
                     else: 
-                        player.money -= player.current_bet
-                        player.losses += 1
-                        print("{} lost and losses {} dollars".format(
-                            player.name, str(player.current_bet)))
+                        self.handle_outcome(player, "loss")
                 else:
-                    player.money += player.current_bet
-                    player.wins += 1
-                    print("{} wins and gets {} dollars".format(
-                        player.name, str(player.current_bet*2)))
+                    self.handle_outcome(player, "win")
+
+    def check_for_blackjack(self, player):
+        """Return true if player has blackjack"""
+        return player.hand_value == 21 and \
+            len(player.hand_stack) == 2 and \
+            (player.hand_stack[0]['Value'] == 11 or \
+            player.hand_stack[1]['Value'] == 11)
+
+    def handle_outcome(self, player, outcome):
+        """Increment/Decrement win, losses, and money and show win/loss msg"""
+        if outcome == "win":
+            player.money += player.current_bet
+            player.wins += 1
+            show_win_msg(player, str(player.current_bet*2))
+        elif outcome == "loss" or outcome == "bust":
+            player.money -= player.current_bet
+            player.losses += 1
+            if outcome == "bust":
+                show_bust_msg(player)
+            else:
+                show_loss_msg(player, str(player.current_bet))
+        elif outcome == "blackjack":
+            player.money += math.floor(player.current_bet+(player.current_bet*1.5))
+            player.wins += 1
+            show_blackjack_msg(player,
+                math.floor(player.current_bet+(player.current_bet*1.5)))
 
     def force_hit_until_18(self):
         """Dealer forcefully draws cards until his hand is above 17 or he busts."""
         while self.dealer.hand_value <= 17 and not self.dealer.hand_value >= 21:
             self.deck.draw_card(self.dealer)
-            self.dealer.show_cards_in_hand()
+            show_cards(self.dealer)
 
     def play_again(self):
-        """Game asks player for input to play again, if yes, user/dealer
-        stats are reseted. Otherwise, the program ends."""
-        while True:
-            try:
-                choice = str(input("Do you want to play another round? [Y/N]")).strip().upper()
-            except ValueError:
-                print("Sorry, choose a valid option - Y or N.")
-                continue
-            if isinstance(choice, int):
-                print("Provide a letter not a number")
-                continue
-            if choice not in ['N','Y']:
-                print("Choose Y or N")
-                continue
-            else:
-                break
+        """ Game restarts if user wants to quit, 
+        otherwise game is restarted"""
+        choice = get_play_again_choice()
         if choice == "Y":
-            self.reset_game()
-            self.get_player_bets()
-            self.play_game()
+            self.restart_game()
         else:
             self.write_json_data()
-            sys.exit("Ok. See you next time")
+            show_exit_msg()
 
     def prepare_game(self):
         """Collect number of players and their usernames before starting game"""
@@ -354,11 +303,11 @@ class Game():
         self.deal_to_players()
         self.deal_to_dealer()
         for player in self.players:
-            self.show_game_options(player)
+            self.show_options(player)
         self.deal_to_dealer()
         if not self.dealer.soft_17():
             self.force_hit_until_18() 
-            self.dealer.check_for_bust()
+            self.dealer.handle_bust()
         self.compare_hands()
         self.play_again()
 
@@ -366,40 +315,25 @@ class Game():
         """Deals two cards to each player"""
         for player in self.players:
             self.deck.draw_card(player, 2)
-            player.show_cards_in_hand()
+            show_cards(player)
 
     def deal_to_dealer(self):
         """Deals a single card to the dealer"""
         self.deck.draw_card(self.dealer)
-        self.dealer.show_cards_in_hand()
+        show_cards(self.dealer)
+
+    def restart_game(self):
+        """Resets game stats, gets players bets and starts a new game"""
+        self.reset_game()
+        self.get_player_bets()
+        self.play_game()
 
     def get_player_info(self):
         """Game prompts user for players info then adds those
         players to the self.players."""
-        while True:
-            try:
-                num = int(input("How many players are going to play in this round of Blackjack? "))
-            except ValueError:
-                print("Sorry, choose a valid option.")
-                continue
-            if isinstance(num, str):
-                print("Provide a number not a letter or a word")
-                continue
-            else:
-                break
+        num = get_num_players()
         for count in range(num):
-            while True:
-                try:
-                    name = str(input(
-                        "What is player {}'s username? ".format(count+1)))
-                except ValueError:
-                    print("Sorry, choose a valid option")
-                    continue
-                if isinstance(name, int):
-                    print("Username must letters not numbers")
-                    continue
-                else:
-                    break
+            name = get_player_name(count)
             player = self.get_json_player_info(name)
             if not player:
                 self.create_new_player(name)
@@ -408,25 +342,7 @@ class Game():
 
     def get_player_bets(self):
         for player in self.players:
-            print("You have {} dollars to bet with".format(player.money))
-            while True:
-                try:
-                    bet = int(input("{}, What is your minimum bet? ".format(
-                        player.name)))
-                except ValueError:
-                    print("Sorry, choose a valid number.")
-                    continue
-                if isinstance(bet, str):
-                    print("Provide a number not a letter or word")
-                    continue
-                elif bet < 1:
-                    print("Provide a positive bet above zero")
-                    continue
-                elif (player.money - bet) < 0:
-                    print("You don't have enough money to bet this amount.")
-                    continue
-                else:
-                    break
+            bet = show_bet_msg(player)
             player.current_bet = bet 
 
     def json_to_player(self, jsonobj):
@@ -446,15 +362,7 @@ class Game():
                 return player
 
     def create_new_player(self, name):
-        while True:
-            try:
-                choice = str(input("The username {} could not be found. Do you want to create a new user with this username? [Y/N]".format(
-                    name))).strip().upper()
-            except ValueError:
-                print("Sorry, choose a valid option- Y or N")
-                continue
-            else:
-                break
+        choice = show_create_player_msg(name)
         if choice == 'Y':
             player = Player(name=name, save_to_file=True)
         else:
